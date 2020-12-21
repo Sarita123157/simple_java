@@ -1,0 +1,52 @@
+# Docker
+# Build a Docker image 
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+#trigger:
+#- main
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  appName: $(Build.DefinitionName)
+  branchName: $(Build.SourceBranchName)
+  buildName: $(Build.BuildNumber)
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+      #vmImage: 'CentOS-8'
+    steps:
+    #- task: Bash@3
+    #  inputs:
+    #    targetType: 'inline'
+    #    script: 'env | sort'
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo $BUILD_DEFINITIONNAME
+          echo $BUILD_BUILDNUMBER
+          echo $BUILD_SOURCEBRANCHNAME
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'kaushikarvind/myapp'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: '$(tag)'
+        addPipelineData: true
+        arguments: --build-arg app_name=$(appName)
+                   --build-arg branch_name=$(branchName)
+                   --build-arg build_name=$(buildName)
+      #env:
+      #  id: $(id)
+      #  appName: $(appName)
+      #  branchName: $(branchName)
+      #  buildName: $(buildName)
